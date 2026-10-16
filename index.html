@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#101714" />
+  <title>Ритм — привычки каждый день</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg: #101714;
+      --panel: #19231e;
+      --panel2: #202d26;
+      --text: #f0f6f1;
+      --muted: #94a69a;
+      --green: #9be6a7;
+      --green2: #55c878;
+      --line: rgba(255,255,255,.08);
+      --danger: #ff8b8b;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0; background: radial-gradient(ellipse at top, #1a2b21 0%, var(--bg) 58%);
+      color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh; padding: 18px 14px 30px;
+    }
+    .app { max-width: 480px; margin: 0 auto; }
+    .top { display:flex; align-items:center; justify-content:space-between; margin: 4px 2px 20px; }
+    .brand { font-size: 23px; font-weight: 850; letter-spacing: -.7px; }
+    .brand span { color: var(--green); }
+    .date { font-size: 12px; color: var(--muted); background: rgba(255,255,255,.05); padding: 8px 10px; border-radius: 12px; }
+    .hero {
+      background: linear-gradient(135deg, #233b2b, #19261f 72%);
+      border: 1px solid rgba(155,230,167,.15); border-radius: 24px; padding: 20px;
+      position: relative; overflow: hidden; margin-bottom: 17px;
+    }
+    .hero:after { content:""; position:absolute; width:150px; height:150px; right:-35px; top:-50px; border-radius:50%; background:rgba(155,230,167,.08); }
+    .eyebrow { color: var(--green); font-size: 11px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; }
+    h1 { font-size: 27px; line-height: 1.08; letter-spacing:-.8px; margin: 9px 0 8px; max-width: 280px; }
+    .sub { color: #b8c9bd; font-size: 13px; line-height: 1.45; max-width: 290px; }
+    .progress-row { display:flex; justify-content:space-between; align-items:center; margin-top: 20px; font-size:12px; color:#d4e4d7; }
+    .bar { height: 7px; background:rgba(255,255,255,.09); border-radius:20px; overflow:hidden; margin-top:8px; }
+    .bar > div { height:100%; width:0%; background:linear-gradient(90deg,var(--green2),var(--green)); border-radius:20px; transition:width .25s; }
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:23px; }
+    .stat { background:var(--panel); border:1px solid var(--line); border-radius:17px; padding:13px 12px; }
+    .stat .num { font-size:21px; font-weight:850; letter-spacing:-.5px; }
+    .stat .label { color:var(--muted); font-size:11px; margin-top:4px; }
+    .section-head { display:flex; justify-content:space-between; align-items:center; margin: 0 2px 12px; }
+    .section-head h2 { margin:0; font-size:17px; letter-spacing:-.3px; }
+    .count { color:var(--muted); font-size:12px; }
+    .habit-list { display:flex; flex-direction:column; gap:10px; }
+    .habit {
+      display:flex; align-items:center; gap:12px; background:var(--panel); border:1px solid var(--line);
+      border-radius:18px; padding:13px; transition:transform .15s, border-color .15s;
+    }
+    .habit.done { border-color:rgba(155,230,167,.35); background:linear-gradient(120deg,rgba(85,200,120,.13),var(--panel)); }
+    .icon { width:43px; height:43px; flex:0 0 43px; display:grid; place-items:center; font-size:21px; background:var(--panel2); border-radius:14px; }
+    .habit-info { flex:1; min-width:0; }
+    .habit-name { font-size:14px; font-weight:750; overflow-wrap:anywhere; }
+    .habit-meta { color:var(--muted); font-size:11px; margin-top:5px; }
+    .check {
+      width:35px; height:35px; flex:0 0 35px; border:1px solid rgba(255,255,255,.16); border-radius:12px;
+      background:transparent; color:transparent; font-size:18px; font-weight:900; cursor:pointer;
+    }
+    .done .check { background:var(--green); color:#102016; border-color:var(--green); }
+    .empty { color:var(--muted); background:var(--panel); border:1px dashed rgba(255,255,255,.15); padding:22px 15px; text-align:center; border-radius:18px; font-size:13px; line-height:1.5; }
+    .add-btn {
+      width:100%; margin-top:13px; border:0; border-radius:16px; padding:15px; background:var(--green);
+      color:#122017; font-size:14px; font-weight:850; cursor:pointer;
+    }
+    .add-btn:active, .check:active { transform:scale(.98); }
+    .note { color:#75867b; font-size:10px; line-height:1.45; text-align:center; margin:17px 8px 0; }
+    .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:10; padding:18px; align-items:flex-end; justify-content:center; }
+    .modal-backdrop.show { display:flex; }
+    .modal { width:100%; max-width:460px; background:#1a251f; border:1px solid var(--line); border-radius:24px; padding:20px; box-shadow:0 20px 60px #0008; }
+    .modal h2 { margin:0 0 16px; font-size:20px; }
+    label { display:block; color:var(--muted); font-size:12px; margin:13px 0 7px; }
+    input, select { width:100%; padding:13px; background:#111a15; border:1px solid rgba(255,255,255,.12); border-radius:12px; color:var(--text); font:inherit; outline:none; }
+    input:focus, select:focus { border-color:var(--green); }
+    .emoji-row { display:grid; grid-template-columns:repeat(6,1fr); gap:7px; }
+    .emoji-option { border:1px solid var(--line); background:#111a15; border-radius:12px; padding:9px 0; font-size:20px; }
+    .emoji-option.selected { border-color:var(--green); background:#294332; }
+    .modal-actions { display:flex; gap:9px; margin-top:18px; }
+    .modal-actions button { flex:1; border:0; border-radius:13px; padding:13px; font-weight:800; font-size:13px; }
+    .cancel { background:#2a3830; color:var(--text); }
+    .save { background:var(--green); color:#122017; }
+    .toast { position:fixed; bottom:22px; left:50%; transform:translate(-50%,20px); opacity:0; background:#e1f7e5; color:#122017; border-radius:14px; padding:11px 15px; font-size:13px; font-weight:750; transition:.2s; z-index:20; pointer-events:none; white-space:nowrap; }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="top">
+      <div class="brand">ритм<span>.</span></div>
+      <div class="date" id="todayLabel"></div>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow">маленький шаг каждый день</div>
+      <h1>Собери свой ритм.</h1>
+      <div class="sub">Отмечай привычки, сохраняй серии и превращай маленькие действия в большой прогресс.</div>
+      <div class="progress-row"><span>Прогресс сегодня</span><strong id="progressText">0 из 0</strong></div>
+      <div class="bar"><div id="progressBar"></div></div>
+    </section>
+
+    <section class="stats">
+      <div class="stat"><div class="num" id="doneStat">0</div><div class="label">сделано сегодня</div></div>
+      <div class="stat"><div class="num" id="streakStat">0 🔥</div><div class="label">лучшая серия</div></div>
+      <div class="stat"><div class="num" id="totalStat">0</div><div class="label">привычек всего</div></div>
+    </section>
+
+    <div class="section-head">
+      <h2>Твои привычки</h2><span class="count" id="habitCount">0 привычек</span>
+    </div>
+    <section class="habit-list" id="habitList"></section>
+    <button class="add-btn" id="addBtn">＋ Добавить привычку</button>
+    <p class="note">Данные сохраняются на этом устройстве. Это первая версия — позже можно добавить аккаунт, синхронизацию и новые функции.</p>
+  </main>
+
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal">
+      <h2>Новая привычка</h2>
+      <label for="habitName">Название</label>
+      <input id="habitName" maxlength="40" placeholder="Например, читать 10 минут" />
+      <label>Выбери значок</label>
+      <div class="emoji-row" id="emojiRow">
+        <button class="emoji-option selected" data-emoji="📚">📚</button>
+        <button class="emoji-option" data-emoji="💧">💧</button>
+        <button class="emoji-option" data-emoji="🏃">🏃</button>
+        <button class="emoji-option" data-emoji="🧠">🧠</button>
+        <button class="emoji-option" data-emoji="🎨">🎨</button>
+        <button class="emoji-option" data-emoji="💪">💪</button>
+      </div>
+      <label for="habitGoal">Частота</label>
+      <select id="habitGoal">
+        <option value="Каждый день">Каждый день</option>
+        <option value="По желанию">По желанию</option>
+      </select>
+      <div class="modal-actions">
+        <button class="cancel" id="cancelBtn">Отмена</button>
+        <button class="save" id="saveBtn">Создать</button>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#101714'); tg.setBackgroundColor('#101714'); } catch(e) {} }
+
+  const KEY = 'ritm_habits_v1';
+  const dateKey = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  };
+  const yesterdayKey = () => {
+    const d = new Date(); d.setDate(d.getDate()-1);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  };
+  const defaults = [
+    { id: 1, name: 'Читать 10 минут', emoji: '📚', goal: 'Каждый день', history: [] },
+    { id: 2, name: 'Выпить воды', emoji: '💧', goal: 'Каждый день', history: [] },
+    { id: 3, name: 'Прогуляться', emoji: '🏃', goal: 'Каждый день', history: [] }
+  ];
+  let habits = [];
+  try { habits = JSON.parse(localStorage.getItem(KEY)) || defaults; } catch(e) { habits = defaults; }
+  let chosenEmoji = '📚';
+
+  const $ = id => document.getElementById(id);
+  const save = () => localStorage.setItem(KEY, JSON.stringify(habits));
+  const isDone = h => h.history.includes(dateKey());
+  const streak = h => {
+    let n = 0, d = new Date();
+    if (!h.history.includes(dateKey())) d.setDate(d.getDate()-1);
+    for (let i=0; i<366; i++) {
+      const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      if (!h.history.includes(k)) break;
+      n++; d.setDate(d.getDate()-1);
+    }
+    return n;
+  };
+  const bestStreak = () => habits.reduce((m,h) => Math.max(m, streak(h)), 0);
+  const toast = msg => {
+    $('toast').textContent = msg; $('toast').classList.add('show');
+    setTimeout(() => $('toast').classList.remove('show'), 1800);
+  };
+  const render = () => {
+    const today = dateKey();
+    $('todayLabel').textContent = new Date().toLocaleDateString('ru-RU', { day:'numeric', month:'short' });
+    const done = habits.filter(isDone).length;
+    $('progressText').textContent = `${done} из ${habits.length}`;
+    $('progressBar').style.width = `${habits.length ? done / habits.length * 100 : 0}%`;
+    $('doneStat').textContent = done;
+    $('streakStat').textContent = `${bestStreak()} 🔥`;
+    $('totalStat').textContent = habits.length;
+    $('habitCount').textContent = `${habits.length} ${habits.length === 1 ? 'привычка' : habits.length >= 2 && habits.length <= 4 ? 'привычки' : 'привычек'}`;
+    const list = $('habitList');
+    if (!habits.length) {
+      list.innerHTML = '<div class="empty">Пока здесь пусто.<br>Добавь первую привычку и начни собирать свой ритм.</div>';
+      return;
+    }
+    list.innerHTML = habits.map(h => {
+      const doneToday = isDone(h);
+      return `<article class="habit ${doneToday ? 'done' : ''}">
+        <div class="icon">${h.emoji}</div>
+        <div class="habit-info"><div class="habit-name">${escapeHtml(h.name)}</div>
+        <div class="habit-meta">${doneToday ? 'Выполнено сегодня ✓' : h.goal} · ${streak(h)} дн. подряд</div></div>
+        <button class="check" aria-label="Отметить выполнение" data-check="${h.id}">${doneToday ? '✓' : '✓'}</button>
+      </article>`;
+    }).join('');
+    list.querySelectorAll('[data-check]').forEach(btn => btn.addEventListener('click', () => toggleHabit(Number(btn.dataset.check))));
+  };
+  const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const toggleHabit = id => {
+    const h = habits.find(x => x.id === id);
+    if (!h) return;
+    const today = dateKey();
+    if (h.history.includes(today)) {
+      h.history = h.history.filter(d => d !== today);
+      toast('Отметка отменена');
+    } else {
+      h.history.push(today);
+      toast('Отлично! Привычка выполнена 🎉');
+      if (tg && tg.HapticFeedback) try { tg.HapticFeedback.impactOccurred('light'); } catch(e) {}
+    }
+    save(); render();
+  };
+  const openModal = () => {
+    $('habitName').value = '';
+    chosenEmoji = '📚';
+    document.querySelectorAll('.emoji-option').forEach(b => b.classList.toggle('selected', b.dataset.emoji === chosenEmoji));
+    $('modalBackdrop').classList.add('show');
+    setTimeout(() => $('habitName').focus(), 100);
+  };
+  const closeModal = () => $('modalBackdrop').classList.remove('show');
+
+  $('addBtn').addEventListener('click', openModal);
+  $('cancelBtn').addEventListener('click', closeModal);
+  $('modalBackdrop').addEventListener('click', e => { if (e.target === $('modalBackdrop')) closeModal(); });
+  $('emojiRow').querySelectorAll('.emoji-option').forEach(b => b.addEventListener('click', () => {
+    chosenEmoji = b.dataset.emoji;
+    document.querySelectorAll('.emoji-option').forEach(x => x.classList.toggle('selected', x === b));
+  }));
+  $('saveBtn').addEventListener('click', () => {
+    const name = $('habitName').value.trim();
+    if (!name) { toast('Введи название привычки'); $('habitName').focus(); return; }
+    habits.unshift({ id: Date.now(), name, emoji: chosenEmoji, goal: $('habitGoal').value, history: [] });
+    save(); render(); closeModal(); toast('Привычка добавлена');
+  });
+  $('habitName').addEventListener('keydown', e => { if (e.key === 'Enter') $('saveBtn').click(); });
+
+  // Seed sample habits only on first launch.
+  if (!localStorage.getItem(KEY)) save();
+  render();
+})();
+</script>
+</body>
+</html>
